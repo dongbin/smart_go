@@ -12,13 +12,14 @@
 (defun init-neighbor-map () 
   (dotimes (i board-size) (
 			   dotimes (j board-size) 
-			    (if (> i 1) (push (cons (- i 1) j) (aref neighbor-map i j)))
-			    (if (> j 1) (push (cons i (- j 1) ) (aref neighbor-map i j)))
+			    (if (> i 0) (push (cons (- i 1) j) (aref neighbor-map i j)))
+			    (if (> j 0) (push (cons i (- j 1) ) (aref neighbor-map i j)))
 			    (if (< i (- board-size 1))  (push (cons (+ i 1) j)  (aref neighbor-map i j)))
 			    (if (< j (- board-size 1)) (push (cons i (+ j 1) )  (aref neighbor-map i j)))
 			    )))
 
 (defun add-stone-on-board (board position color)
+  (and (position-available? board position color)
   (let ( (x  (car position)) (y (cdr position))  )
     (setf (aref (board-stones board) x y) color )
     (dolist (point (aref neighbor-map  x y))
@@ -26,7 +27,7 @@
       (cond ((= (aref (board-stones board) (car point) (cdr point) )  color) (append-stone-string board (aref (board-stone-strings board) (car point) (cdr point) ) x y ) ))
       (if (not (aref (board-stone-strings board) x y)) (create-stone-string board position color) )
       
-      )))
+      ))))
 
 
 (defun append-stone-string (board neighbor-string x y)
@@ -61,8 +62,11 @@
 (defun create-stone-string (board position color) 
   (setf (aref (board-stone-strings board) (car position) (cdr position)) (make-stone-string  :color color :stones  (list position)  :liberties (search-liberties board position)  )  )
   )
+ (defun position-available? (board position color)
+   (and (= empty (aref (board-stones board) (car position) (cdr position)))
+   (or (search-liberties board position) 
+    (member-if (lambda (point) (and (= (aref (board-stones board) (car point) (cdr point) )  (enemy-color color) ) (= 1 (list-length (aref (board-stone-strings board) (car point) (cdr point))))
+  )) (aref neighbor-map  (car position) (cdr position))))))
+
+(defun enemy-color (color) (if (= black color) white  black ))
 (init-neighbor-map)
-;;(setq board3 (make-board))
-;;  (defun position-available? (board position color)
-;;    ()
-;;    )
